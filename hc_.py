@@ -6,7 +6,7 @@ import random
 evals = 0
 budget = 0
 dist = None
-coord = []
+coords = []
 class Solution:
     def __init__(self, permutation):
         self.permutation = permutation
@@ -28,7 +28,25 @@ def read_data(filename):
             dist[i][j] = math.sqrt((coords[i][0] - coords[j][0]) ** 2 + (coords[i][1] - coords[j][1]) ** 2)
     return num
 
-
+def improve(sol):
+    global coords
+    permu = np.copy(sol.permutation)
+    for i in range(len(permu) -3):
+        for j in range(i + 2, len(permu)-1):
+            coeff = np.array([[coords[permu[i+1]][0] - coords[permu[i]][0],
+                               coords[permu[j]][0] - coords[permu[j+1]][0]],
+                              [coords[permu[i+1]][1] - coords[permu[i]][1],
+                               coords[permu[j]][1] - coords[permu[j+1]][1]]])
+            c = np.array([coords[permu[j]][0] - coords[permu[i]][0],
+                coords[permu[j]][1] - coords[permu[i]][0]])
+            print coeff
+            try:
+                x ,y = np.linalg.solve(coeff, c).tolist()
+            except:
+                continue
+            if (x >=0 and x <=1) and (y >=0 and y <=1):
+                sol = two_opt_swap(sol, i+1, j)
+    return sol
 
 def two_opt_swap(sol, a, b):
     swap_perm = np.copy(sol.permutation)
@@ -146,3 +164,5 @@ if __name__ == '__main__':
         print int(i),",",
     print int(sol.permutation[-1])
     print sol1.fitness
+    #sol1 = improve(sol1)
+    #print sol1.fitness
