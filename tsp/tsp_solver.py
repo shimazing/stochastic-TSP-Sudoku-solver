@@ -7,6 +7,7 @@ evals = 0
 budget = 0
 dist = None
 coords = []
+
 class Solution:
     def __init__(self, permutation):
         self.permutation = permutation
@@ -39,13 +40,16 @@ def improve(sol):
                                coords[permu[j]][1] - coords[permu[j+1]][1]]])
             c = np.array([coords[permu[j]][0] - coords[permu[i]][0],
                 coords[permu[j]][1] - coords[permu[i]][0]])
-            print coeff
             try:
                 x ,y = np.linalg.solve(coeff, c).tolist()
             except:
                 continue
             if (x >=0 and x <=1) and (y >=0 and y <=1):
-                sol = two_opt_swap(sol, i+1, j)
+                newsol = two_opt_swap(sol, i+1, j)
+                #print x, y
+                if newsol.fitness < sol.fitness:
+                    sol = newsol
+                    #print "swapped"
     return sol
 
 def two_opt_swap(sol, a, b):
@@ -55,8 +59,6 @@ def two_opt_swap(sol, a, b):
     swapped = Solution(np.asarray(swap_perm))
     evaluate(swapped)
     return swapped
-
-
 
 def two_opt(sol):
     global evals, budget
@@ -74,22 +76,11 @@ def two_opt(sol):
                 new = two_opt_swap(sol, i, j)
                 t = T.next()
                 p = P(best.fitness, new.fitness, t)
-                #print p, t
-                #if new.fitness < best.fitness:
-                #    best = new
                 if random.random() <= p:
                     best = new
         sol = best
         print sol.fitness
-        #if sol == best:
-        #    print "stuck"
-        #    break
-        #sol = best
 
-        #if sol.fitness == best.fitness:
-        #    break
-        #else:
-        #    sol = best
     return sol
 
 def evaluate(sol):
@@ -150,19 +141,26 @@ def exp_cooling(start_temp,alpha):
         T=alpha*T
 
 #def simulated_annealing(filename):
-
+def usage():
+    print "Usage: tsp_solver.py [filename] [budget]"
+    print "Please retry"
 
 if __name__ == '__main__':
-    budget = 100000
+    if len(sys.argv) < 3:
+        usage()
+        exit()
+
     num = read_data(sys.argv[1])
+    budget = int(sys.argv[2])
     sol = Solution(np.random.permutation(range(num)))
 
-    #sol = hc(sys.argv[1])
-    #print sol.fitness
     sol1 = two_opt(sol)
     for i in sol.permutation[:-1]:
         print int(i),",",
     print int(sol.permutation[-1])
     print sol1.fitness
-    #sol1 = improve(sol1)
-    #print sol1.fitness
+    sol1 = improve(sol1)
+    for i in sol1.permutation[:-1]:
+        print int(i), ",",
+    print int(sol1.permutation[-1])
+    print sol1.fitness
